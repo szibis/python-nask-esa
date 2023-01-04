@@ -55,7 +55,7 @@ def get_struct(json_data, mode, global_tags, city, post_code, street, name):
     return formated_list # json with fields + tags
 
 def data_output(measurement_name, formated_struct, url, mode):
-    if mode == "telegraf":
+    if mode == "telegraf_exec" or mode == "telegraf_http":
        for item in formated_struct:
           fields = item["measurements"]
           tags = item["details"]
@@ -73,11 +73,13 @@ def data_output(measurement_name, formated_struct, url, mode):
           tags = ",".join(tags_list)
           fields = ",".join(fields_list)
           data_string = '{measurement},{tag} {field} {epoch}'.format(measurement=measurement_name, field=fields, tag=tags, epoch=epoch)
-          if mode == "telegraf":
+          if mode == "telegraf_http":
              try:
                 r = requests.post(url, data=data_string.encode('utf-8'))
              except:
-                print("Error sending ----> {}".format(data_string))
+                print("Error sending to {} ----> {}".format(url, data_string))
+          if mode == "telegraf_exec":
+             print(data_string)
     if mode == "raw":
          # list of JSON output with indent for better reading
          print(json.dumps(formated_struct, indent=4, ensure_ascii=False))
@@ -94,7 +96,7 @@ def main():
   parser.add_argument('-p', action="store", default=None, dest='post_code')
   parser.add_argument('-s', action="store", default=None, dest='street')
   parser.add_argument('-n', action="store", default=None, dest='school_name')
-  parser.add_argument('-m', action="store", default="human", dest='mode', choices=['human', 'raw', 'telegraf'])
+  parser.add_argument('-m', action="store", default="human", dest='mode', choices=['human', 'raw', 'telegraf_exec', 'telegraf_http'])
   args = parser.parse_args()
 
   mode = args.mode # available raa, human or http outputs
