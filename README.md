@@ -12,7 +12,7 @@ Two modes available:
 ### Help
 ```
 python3 nask_esa.py --help
-usage: nask_esa.py [-h] [-d] [-c CITY] [-p POST_CODE] [-s STREET] [-n SCHOOL_NAME] [-m {human,raw,telegraf}]
+usage: nask_esa.py [-h] [-d] [-c CITY] [-p POST_CODE] [-s STREET] [-n SCHOOL_NAME] [-m {human,raw,telegraf_exec,telegraf_http}]
 
 options:
   -h, --help            show this help message and exit
@@ -21,7 +21,7 @@ options:
   -p POST_CODE
   -s STREET
   -n SCHOOL_NAME
-  -m {human,raw,telegraf}
+  -m {human,raw,telegraf_exec,telegraf_http}
   ```
   
  ### Modes
