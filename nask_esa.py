@@ -27,7 +27,7 @@ def add_measurement(global_tags, tags, fields, timestamp):
     formated_struct["timestamp"] = timestamp
     return formated_struct
 
-def get_struct(json_data, mode, global_tags, city, post_code, street, name):
+def get_struct(json_data, mode, global_tags, city, post_code, street, name, longitude, latitude):
     formated_list = []
     for item in json_data["smog_data"]:
         # check if item is not None and exact match normalized to lowered
@@ -46,6 +46,14 @@ def get_struct(json_data, mode, global_tags, city, post_code, street, name):
         elif name is not None:
            if item["school"]["name"] is not None:
               if item["school"]["name"].lower() == post_code.lower():
+                 formated_list.append(add_measurement(global_tags, item["school"], item["data"], item["timestamp"]))
+        elif longitude is not None:
+           if item["school"]["longitude"] is not None:
+              if item["school"]["longitude"] == longitude:
+                 formated_list.append(add_measurement(global_tags, item["school"], item["data"], item["timestamp"]))
+        elif latitude is not None:
+           if item["school"]["latitude"] is not None:
+              if item["school"]["latitude"] == latitude:
                  formated_list.append(add_measurement(global_tags, item["school"], item["data"], item["timestamp"]))
         else:
               formated_list.append(add_measurement(global_tags, item["school"], item["data"], item["timestamp"]))
@@ -91,12 +99,14 @@ def data_output(measurement_name, formated_struct, url, mode):
               
 def main():
   parser = argparse.ArgumentParser()
-  parser.add_argument('-d', action="store_true", default=False, dest='debug')
-  parser.add_argument('-c', action="store", default=None, dest='city')
-  parser.add_argument('-p', action="store", default=None, dest='post_code')
-  parser.add_argument('-s', action="store", default=None, dest='street')
-  parser.add_argument('-n', action="store", default=None, dest='school_name')
-  parser.add_argument('-m', action="store", default="human", dest='mode', choices=['human', 'raw', 'telegraf_exec', 'telegraf_http'])
+  parser.add_argument('-d', '--debug', action="store_true", default=False, dest='debug')
+  parser.add_argument('-c', '--city', action="store", default=None, dest='city')
+  parser.add_argument('-p', '--post_code', action="store", default=None, dest='post_code')
+  parser.add_argument('-s', '--street', action="store", default=None, dest='street')
+  parser.add_argument('-n', '--school_name', action="store", default=None, dest='school_name')
+  parser.add_argument('-m', '--mode', action="store", default="human", dest='mode', choices=['human', 'raw', 'telegraf_exec', 'telegraf_http'])
+  parser.add_argument('-o', '--longitude', action="store", default=None, dest='longitude')
+  parser.add_argument('-a', '--latitude', action="store", default=None, dest='latitude')
   args = parser.parse_args()
 
   mode = args.mode # available raa, human or http outputs
@@ -112,6 +122,8 @@ def main():
   post_code=args.post_code
   street=args.street
   school_name=args.school_name
+  longitude=args.longitude
+  latitude=args.latitude
 
   # source
   # get JSON data via API call
@@ -119,7 +131,7 @@ def main():
 
   # transform
   # prepare to formated structure
-  formated_struct = get_struct(json_data, mode, global_tags, city, post_code, street, school_name)
+  formated_struct = get_struct(json_data, mode, global_tags, city, post_code, street, school_name, longitude, latitude)
 
   # send
   # output data based on mode
