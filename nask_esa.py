@@ -63,7 +63,7 @@ def get_struct(json_data, mode, global_tags, city, post_code, street, name, long
     return formated_list # json with fields + tags
 
 def data_output(measurement_name, formated_struct, url, mode):
-    if mode == "telegraf_exec" or mode == "telegraf_http":
+    if mode == "telegraf-exec" or mode == "telegraf-http":
        for item in formated_struct:
           fields = item["measurements"]
           tags = item["details"]
@@ -86,7 +86,7 @@ def data_output(measurement_name, formated_struct, url, mode):
                 r = requests.post(url, data=data_string.encode('utf-8'))
              except:
                 print("Error sending to {} ----> {}".format(url, data_string))
-          if mode == "telegraf_exec":
+          if mode == "telegraf-exec":
              print(data_string)
     if mode == "raw":
          # list of JSON output with indent for better reading
@@ -101,10 +101,10 @@ def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('-d', '--debug', action="store_true", default=False, dest='debug')
   parser.add_argument('-c', '--city', action="store", default=None, dest='city')
-  parser.add_argument('-p', '--post_code', action="store", default=None, dest='post_code')
+  parser.add_argument('-p', '--post-code', action="store", default=None, dest='post_code')
   parser.add_argument('-s', '--street', action="store", default=None, dest='street')
-  parser.add_argument('-n', '--school_name', action="store", default=None, dest='school_name')
-  parser.add_argument('-m', '--mode', action="store", default="human", dest='mode', choices=['human', 'raw', 'telegraf_exec', 'telegraf_http'])
+  parser.add_argument('-n', '--school-name', action="store", default=None, dest='school_name')
+  parser.add_argument('-m', '--mode', action="store", default="human", dest='mode', choices=['human', 'raw', 'telegraf-exec', 'telegraf-http'])
   parser.add_argument('-o', '--longitude', action="store", default=None, dest='longitude')
   parser.add_argument('-a', '--latitude', action="store", default=None, dest='latitude')
   args = parser.parse_args()
