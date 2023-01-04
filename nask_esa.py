@@ -6,6 +6,7 @@ import json
 import re
 import time
 import pandas as pd
+from typing import List
 
 def get_json(url):
     # requests
@@ -27,6 +28,10 @@ def add_measurement(global_tags, tags, fields, timestamp):
     formated_struct["timestamp"] = timestamp
     return formated_struct
 
+def dedup_dicts(items: List[dict]):
+    dedu = [json.loads(x) for x in set(json.dumps(item, sort_keys=True) for item in items)]
+    return dedu
+
 def get_struct(json_data, mode, global_tags, city, post_code, street, name, longitude, latitude):
     formated_list = []
     for item in json_data["smog_data"]:
@@ -35,32 +40,31 @@ def get_struct(json_data, mode, global_tags, city, post_code, street, name, long
            if item["school"]["city"] is not None:
               if item["school"]["city"].lower() == city.lower():
                  formated_list.append(add_measurement(global_tags, item["school"], item["data"], item["timestamp"]))
-        elif post_code is not None:
+        if post_code is not None:
            if item["school"]["post_code"] is not None:
               if item["school"]["post_code"].lower() == post_code.lower():
                  formated_list.append(add_measurement(global_tags, item["school"], item["data"], item["timestamp"]))
-        elif street is not None:
+        if street is not None:
            if item["school"]["street"] is not None:
               if item["school"]["street"].lower() == post_code.lower():
                  formated_list.append(add_measurement(global_tags, item["school"], item["data"], item["timestamp"]))
-        elif name is not None:
+        if name is not None:
            if item["school"]["name"] is not None:
               if item["school"]["name"].lower() == post_code.lower():
                  formated_list.append(add_measurement(global_tags, item["school"], item["data"], item["timestamp"]))
-        elif longitude is not None:
+        if longitude is not None:
            if item["school"]["longitude"] is not None:
               if item["school"]["longitude"] == longitude:
                  formated_list.append(add_measurement(global_tags, item["school"], item["data"], item["timestamp"]))
-        elif latitude is not None:
+        if latitude is not None:
            if item["school"]["latitude"] is not None:
               if item["school"]["latitude"] == latitude:
                  formated_list.append(add_measurement(global_tags, item["school"], item["data"], item["timestamp"]))
-        else:
+        if city is None and post_code is None and street is None and name is None and longitude is None and latitude is None:
               formated_list.append(add_measurement(global_tags, item["school"], item["data"], item["timestamp"]))
-           #if item["data"]['pressure_avg']:
-           #   pressure_sea = item["data"]['pressure_avg'] / pow(1 - (0.0065 * 200) / (item["data"]['temperature_avg'] + 0.0065 * 200 + 273.15), 5.257)
-           #   item["data"]['pressure_sea_avg'] = pressure_sea
-    return formated_list # json with fields + tags
+    # uniq items
+    return_list = dedup_dicts(formated_list)
+    return return_list # json with fields + tags
 
 def data_output(measurement_name, formated_struct, url, mode):
     if mode == "telegraf-exec" or mode == "telegraf-http":
