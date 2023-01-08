@@ -11,6 +11,7 @@ Two modes available:
 * Telegraf interval exec with output parsing [exec](https://github.com/influxdata/telegraf/tree/master/plugins/inputs/exec)
 * Sending into [Telegraf HTTP input](https://github.com/influxdata/telegraf/tree/master/plugins/inputs/http) via HTTP in Influx format
 
+With filtering we can generate metrics for example in whole city or postal-code in our neigborhood without knowing specific school (station id) whoch is more effective by grabbing all data in one API call.
 ### Help
 ```
 python3 nask_esa.py -h
