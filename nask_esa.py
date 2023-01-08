@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 
 import argparse
 import requests
@@ -83,8 +84,10 @@ def data_output(measurement_name, measurement_name_stats, formated_struct, url, 
                       tag = "{k}={v}".format(k=ktag, v=vtag)
                       tags_list.append(tag)
           tags = ",".join(tags_list)
+          # escape al chars that are not allowed in influx protocol https://archive.docs.influxdata.com/influxdb/v0.9/write_protocols/write_syntax/#escaping-characters
+          ntags=tags.replace(" ","\ ")
           fields = ",".join(fields_list)
-          data_string = '{measurement},{tag} {field} {epoch}'.format(measurement=measurement_name, field=fields, tag=tags, epoch=epoch)
+          data_string = '{measurement},{tag} {field} {epoch}'.format(measurement=measurement_name, field=fields, tag=ntags, epoch=epoch)
           if mode == "telegraf-http":
                 r = requests.post(url, data=data_string.encode('utf-8'))
                 if r.status_code != 204 and debug:
@@ -100,7 +103,7 @@ def data_output(measurement_name, measurement_name_stats, formated_struct, url, 
                 for code, count in stats_status.items():
                     data_stats = '{measurement},code={code} count={count} {epoch}'.format(measurement=measurement_name_stats, code=code, count=count, epoch=curr_epoch)
                     # same url used as used in metrics sending
-                    requests.post(url, data_stats)
+                    requests.post(url, data_stats.encode('utf-8'))
                 if debug:
                    print(stats_status)
           if mode == "telegraf-exec":
@@ -113,7 +116,7 @@ def data_output(measurement_name, measurement_name_stats, formated_struct, url, 
          for item in formated_struct:
              data_frame = pd.DataFrame.from_dict(item)
              print(data_frame)
-              
+
 def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('-d', '--debug', action="store_true", default=False, dest='debug')
