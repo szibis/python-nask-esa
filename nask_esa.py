@@ -68,7 +68,7 @@ def get_struct(json_data, mode, global_tags, city, post_code, street, name, long
 
 def data_output(measurement_name, measurement_name_stats, formated_struct, url, mode, debug):
     if mode == "telegraf-exec" or mode == "telegraf-http":
-       stats_tatus = {}
+       stats_status = {}
        for item in formated_struct:
           fields = item["measurements"]
           tags = item["details"]
@@ -93,14 +93,14 @@ def data_output(measurement_name, measurement_name_stats, formated_struct, url, 
                 r = requests.post(url, data=data_string.encode('utf-8'))
                 if r.status_code != 204:
                    print(data_string)
-                if r.status_code in status:
-                   status[r.status_code] += 1
+                if r.status_code in stats_status:
+                   stats_status[r.status_code] += 1
                 else:
-                   status[r.status_code] = 1
+                   stats_status[r.status_code] = 1
                 epo = int(time.time())
                 curr_epoch = str(epo).split(".")[0][::-1].zfill(19)[::-1]
                 # send internal stats about summary of each return coddes writing to telegraf influxdb listener - easy to monitor how many metrics sensing and which one ends with proper codes
-                for code, count in status.items():
+                for code, count in stats_status.items():
                     data_stats = '{measurement},code={code} count={count} {epoch}'.format(measurement=measurement_name_stats, code=code, count=count, epoch=curr_epoch)
                     # same url used as used in metrics sending
                     requests.post(url, data_stats)
