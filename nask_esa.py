@@ -66,8 +66,9 @@ def get_struct(json_data, mode, global_tags, city, post_code, street, name, long
     return_list = dedup_dicts(formated_list)
     return return_list # json with fields + tags
 
-def data_output(measurement_name, formated_struct, url, mode):
+def data_output(measurement_name, measurement_name_stats, formated_struct, url, mode, debug):
     if mode == "telegraf-exec" or mode == "telegraf-http":
+       stats_tatus = {}
        for item in formated_struct:
           fields = item["measurements"]
           tags = item["details"]
@@ -85,9 +86,26 @@ def data_output(measurement_name, formated_struct, url, mode):
           tags = ",".join(tags_list)
           fields = ",".join(fields_list)
           data_string = '{measurement},{tag} {field} {epoch}'.format(measurement=measurement_name, field=fields, tag=tags, epoch=epoch)
-          if mode == "telegraf_http":
+          if mode == "telegraf-http":
+             if debug:
+                   print(data_string)
              try:
                 r = requests.post(url, data=data_string.encode('utf-8'))
+                if r.status_code != 204:
+                   print(data_string)
+                if r.status_code in status:
+                   status[r.status_code] += 1
+                else:
+                   status[r.status_code] = 1
+                epo = int(time.time())
+                curr_epoch = str(epo).split(".")[0][::-1].zfill(19)[::-1]
+                # send internal stats about summary of each return coddes writing to telegraf influxdb listener - easy to monitor how many metrics sensing and which one ends with proper codes
+                for code, count in status.items():
+                    data_stats = '{measurement},code={code} count={count} {epoch}'.format(measurement=measurement_name_stats, code=code, count=count, epoch=curr_epoch)
+                    # same url used as used in metrics sending
+                    requests.post(url, data_stats)
+                if debug:
+                   print(stats_status)
              except:
                 print("Error sending to {} ----> {}".format(url, data_string))
           if mode == "telegraf-exec":
@@ -111,12 +129,19 @@ def main():
   parser.add_argument('-m', '--mode', action="store", default="human", dest='mode', choices=['human', 'raw', 'telegraf-exec', 'telegraf-http'])
   parser.add_argument('-o', '--longitude', action="store", default=None, dest='longitude')
   parser.add_argument('-a', '--latitude', action="store", default=None, dest='latitude')
+  parser.add_argument('-t', '--telegraf-url', action="store", default="http://localhost:8186/write", dest='telegraf_http_url')
   args = parser.parse_args()
+
+  debug=args.debug
 
   mode = args.mode # available raa, human or http outputs
   measurement_name = "nask_esa" # for metrics generation and sending
-  telegraf_http_url = 'http://localhost:8186/write'
+  measurement_name_stats = "nask_esa_stats" # this measurement name will be used for stats generated in telegraf-http sending
   esa_api_url = "https://public-esa.ose.gov.pl/api/v1/smog"
+
+  # telegraf url for listener in telegraf used to accept HTTP data in InfluxData format
+  # https://github.com/influxdata/telegraf/blob/master/plugins/inputs/influxdb_listener/README.md
+  telegraf_http_url = args.telegraf_http_url
 
   # static global tags
   global_tags = {}
@@ -139,7 +164,7 @@ def main():
 
   # send
   # output data based on mode
-  data_output(measurement_name, formated_struct, telegraf_http_url, mode)
+  data_output(measurement_name, measurement_name_stats, formated_struct, telegraf_http_url, mode, debug)
 
 if __name__ == '__main__':
     main()
