@@ -106,8 +106,8 @@ def data_output(measurement_name, measurement_name_stats, formated_struct, url, 
                     requests.post(url, data_stats)
                 if debug:
                    print(stats_status)
-             except:
-                print("Error sending to {} ----> {}".format(url, data_string))
+             except Exception as e:
+                print("Error sending to {} ----> {} ----> {}".format(url, data_string, e))
           if mode == "telegraf-exec":
              print(data_string)
     if mode == "raw":
