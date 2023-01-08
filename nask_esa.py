@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 
 import argparse
 import requests
@@ -87,12 +86,10 @@ def data_output(measurement_name, measurement_name_stats, formated_struct, url, 
           fields = ",".join(fields_list)
           data_string = '{measurement},{tag} {field} {epoch}'.format(measurement=measurement_name, field=fields, tag=tags, epoch=epoch)
           if mode == "telegraf-http":
-             if debug:
-                   print(data_string)
-             try:
                 r = requests.post(url, data=data_string.encode('utf-8'))
-                if r.status_code != 204:
+                if r.status_code != 204 and debug:
                    print(data_string)
+                   print(r.json())
                 if r.status_code in stats_status:
                    stats_status[r.status_code] += 1
                 else:
@@ -104,8 +101,8 @@ def data_output(measurement_name, measurement_name_stats, formated_struct, url, 
                     data_stats = '{measurement},code={code} count={count} {epoch}'.format(measurement=measurement_name_stats, code=code, count=count, epoch=curr_epoch)
                     # same url used as used in metrics sending
                     requests.post(url, data_stats)
-             except Exception as e:
-                print("Error sending to {} ----> {} ----> {}".format(url, data_string, e))
+                if debug:
+                   print(stats_status)
           if mode == "telegraf-exec":
              print(data_string)
     if mode == "raw":
