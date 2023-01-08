@@ -14,27 +14,28 @@ Two modes available:
 With filtering we can generate metrics for example in whole city or postal-code in our neigborhood without knowing specific school (station id) whoch is more effective by grabbing all data in one API call.
 ### Help
 ```
-python3 nask_esa.py -h
-usage: nask_esa.py [-h] [-d] [-c CITY] [-p POST_CODE] [-s STREET] [-n SCHOOL_NAME] [-m {human,raw,telegraf_exec,telegraf_http}] [-o LONGITUDE] [-a LATITUDE]
+python3 nask_esa.py --help
+usage: nask_esa.py [-h] [-d] [-c CITY] [-p POST_CODE] [-s STREET] [-n SCHOOL_NAME] [-m {human,raw,telegraf-exec,telegraf-http}] [-o LONGITUDE] [-a LATITUDE] [-t TELEGRAF_HTTP_URL]
 
 options:
   -h, --help            show this help message and exit
   -d, --debug
   -c CITY, --city CITY
-  -p POST_CODE, --post_code POST_CODE
+  -p POST_CODE, --post-code POST_CODE
   -s STREET, --street STREET
-  -n SCHOOL_NAME, --school_name SCHOOL_NAME
-  -m {human,raw,telegraf_exec,telegraf_http}, --mode {human,raw,telegraf_exec,telegraf_http}
+  -n SCHOOL_NAME, --school-name SCHOOL_NAME
+  -m {human,raw,telegraf-exec,telegraf-http}, --mode {human,raw,telegraf-exec,telegraf-http}
   -o LONGITUDE, --longitude LONGITUDE
   -a LATITUDE, --latitude LATITUDE
+  -t TELEGRAF_HTTP_URL, --telegraf-url TELEGRAF_HTTP_URL
   ```
   
  ### Modes
  Script can be used in multiple modes to output data in:
  * JSON with proper indent for better reading
  * Human readable table formating
- * telegraf HTTP sending in influx format 
- * telegraf exec output in influx format
+ * [Telegraf](https://github.com/influxdata/telegraf) HTTP listener sending in influx format 
+ * [Telegraf](https://github.com/influxdata/telegraf) as Exec output in influx format
  
  ### Filtering
  All available attributes based on API can be used for filtering. Some like school name are very difficult to use as there is Full School name there, but there are more usable options like:
