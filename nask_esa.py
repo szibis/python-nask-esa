@@ -104,8 +104,6 @@ def data_output(measurement_name, measurement_name_stats, formated_struct, url, 
                     data_stats = '{measurement},code={code} count={count} {epoch}'.format(measurement=measurement_name_stats, code=code, count=count, epoch=curr_epoch)
                     # same url used as used in metrics sending
                     requests.post(url, data_stats)
-                if debug:
-                   print(stats_status)
              except Exception as e:
                 print("Error sending to {} ----> {} ----> {}".format(url, data_string, e))
           if mode == "telegraf-exec":
