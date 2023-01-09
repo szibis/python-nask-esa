@@ -68,11 +68,12 @@ def get_struct(json_data, mode, global_tags, city, post_code, street, name, long
 
 def data_output(measurement_name, measurement_name_stats, formated_struct, url, mode, debug):
     if mode == "telegraf-exec" or mode == "telegraf-http":
+       epo = int(time.time())
+       curr_epoch = str(epo).split(".")[0][::-1].zfill(19)[::-1]
        stats_status = {}
        for item in formated_struct:
           fields = item["measurements"]
           tags = item["details"]
-          epoch = time_epoch(item["timestamp"])
           fields_list = []
           for kfield, vfield in fields.items():
               if vfield is not None:
@@ -87,7 +88,7 @@ def data_output(measurement_name, measurement_name_stats, formated_struct, url, 
           # escape al chars that are not allowed in influx protocol https://archive.docs.influxdata.com/influxdb/v0.9/write_protocols/write_syntax/#escaping-characters
           ntags=tags.replace(" ","\ ")
           fields = ",".join(fields_list)
-          data_string = '{measurement},{tag} {field} {epoch}'.format(measurement=measurement_name, field=fields, tag=ntags, epoch=epoch)
+          data_string = '{measurement},{tag} {field} {epoch}'.format(measurement=measurement_name, field=fields, tag=ntags, epoch=curr_epoch)
           if mode == "telegraf-http":
                 r = requests.post(url, data=data_string.encode('utf-8'))
                 if r.status_code != 204 and debug:
@@ -97,8 +98,6 @@ def data_output(measurement_name, measurement_name_stats, formated_struct, url, 
                    stats_status[r.status_code] += 1
                 else:
                    stats_status[r.status_code] = 1
-                epo = int(time.time())
-                curr_epoch = str(epo).split(".")[0][::-1].zfill(19)[::-1]
                 # send internal stats about summary of each return coddes writing to telegraf influxdb listener - easy to monitor how many metrics sensing and which one ends with proper codes
                 for code, count in stats_status.items():
                     data_stats = '{measurement},code={code} count={count} {epoch}'.format(measurement=measurement_name_stats, code=code, count=count, epoch=curr_epoch)
@@ -108,10 +107,10 @@ def data_output(measurement_name, measurement_name_stats, formated_struct, url, 
                    print(stats_status)
           if mode == "telegraf-exec":
              print(data_string)
-    if mode == "raw":
+    if mode == "json":
          # list of JSON output with indent for better reading
          print(json.dumps(formated_struct, indent=4, ensure_ascii=False))
-    if mode == "human":
+    if mode == "table":
          # human readable table output
          for item in formated_struct:
              data_frame = pd.DataFrame.from_dict(item)
@@ -124,7 +123,7 @@ def main():
   parser.add_argument('-p', '--post-code', action="store", default=None, dest='post_code')
   parser.add_argument('-s', '--street', action="store", default=None, dest='street')
   parser.add_argument('-n', '--school-name', action="store", default=None, dest='school_name')
-  parser.add_argument('-m', '--mode', action="store", default="human", dest='mode', choices=['human', 'raw', 'telegraf-exec', 'telegraf-http'])
+  parser.add_argument('-m', '--mode', action="store", default="json", dest='mode', choices=['table', 'json', 'telegraf-exec', 'telegraf-http'])
   parser.add_argument('-o', '--longitude', action="store", default=None, dest='longitude')
   parser.add_argument('-a', '--latitude', action="store", default=None, dest='latitude')
   parser.add_argument('-t', '--telegraf-url', action="store", default="http://localhost:8186/write", dest='telegraf_http_url')
