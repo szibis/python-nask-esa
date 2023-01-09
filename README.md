@@ -46,27 +46,159 @@ options:
  * -o LONGITUDE, --longitude LONGITUDE
  * -a LATITUDE, --latitude LATITUDE
  
- ### Usage examples
+ With filtering we can add more to expand for example we would like to get all from specific city and extending by additional postal codes that belongs to some place close to city for example
  ```
- python3 nask_esa.py -m raw --longitude=21.00131621 --latitude=50.00814381
+ /usr/local/bin/python-nask-esa --mode json --city tarnów --post-code 33-101
+ ```
+ 
+ ### Usage examples
+ 
+ #### Get data in RAW JSON - JSON reconstructed and rebuilded for telemetry purpose
+ 
+ ```
+ python3 nask_esa.py -m json --longitude=21.2213906 --latitude=52.2233683
 [
     {
         "details": {
-            "name": "SPOŁECZNA SZKOŁA PODSTAWOWA NR 1 IM. KS.PROF. JÓZEFA TISCHNERA W TARNOWIE",
-            "street": "UL. GUMNISKA",
-            "post_code": "33-100",
-            "city": "TARNÓW",
-            "longitude": "21.00131621",
-            "latitude": "50.00814381"
+            "city": "WARSZAWA",
+            "latitude": "52.2233683",
+            "longitude": "21.2213906",
+            "name": "SZKOŁA PODSTAWOWA NR 173 IM. GÓRNIKÓW POLSKICH W WARSZAWIE",
+            "post_code": "05-077",
+            "street": "INNE TRAKT BRZESKI"
         },
         "measurements": {
-            "humidity_avg": 83.44166666666666,
-            "pressure_avg": 1006.4916666666667,
-            "temperature_avg": 5.075,
-            "pm10_avg": 51.525,
-            "pm25_avg": 42.06666666666667
+            "humidity_avg": 90.15833333333335,
+            "pm10_avg": 51.05833333333334,
+            "pm25_avg": 32.81666666666667,
+            "pressure_avg": 999.1166666666667,
+            "temperature_avg": 3.4499999999999997
         },
-        "timestamp": "2023-01-04 16:37:50"
+        "timestamp": "2023-01-09 11:23:43"
     }
 ]
  ```
+ #### Get data in Human readable table 
+ 
+ ```
+python3 nask_esa.py -m table --longitude=21.2213906 --latitude=52.2233683
+                                                           details  measurements            timestamp
+city                                                      WARSZAWA           NaN  2023-01-09 11:23:43
+latitude                                                52.2233683           NaN  2023-01-09 11:23:43
+longitude                                               21.2213906           NaN  2023-01-09 11:23:43
+name             SZKOŁA PODSTAWOWA NR 173 IM. GÓRNIKÓW POLSKICH...           NaN  2023-01-09 11:23:43
+post_code                                                   05-077           NaN  2023-01-09 11:23:43
+street                                          INNE TRAKT BRZESKI           NaN  2023-01-09 11:23:43
+humidity_avg                                                   NaN     90.158333  2023-01-09 11:23:43
+pm10_avg                                                       NaN     51.058333  2023-01-09 11:23:43
+pm25_avg                                                       NaN     32.816667  2023-01-09 11:23:43
+pressure_avg                                                   NaN    999.116667  2023-01-09 11:23:43
+temperature_avg                                                NaN      3.450000  2023-01-09 11:23:43
+ ```
+
+## Observability
+
+### Telegraf as Exec (https://github.com/influxdata/telegraf/tree/master/plugins/inputs/exec)
+
+Example Telegraf configuration
+```
+[[inputs.exec]]
+    interval = "10s"
+    commands = ["/usr/local/bin/python-nask-esa --mode telegraf-exec --longitude=21.2213906 --latitude=52.2233683"]
+    timeout = "10s"
+    data_format = "influx"
+[inputs.exec.tags]
+    db = "nask-esa"
+    
+[[outputs.influxdb]]
+    urls = ["http://192.168.1.11:8428"]
+    database = "nask-esa"
+    username = "nask-esa"
+    skip_database_creation = true
+    precision = "s"
+    flush_interval = "30s"
+    metric_buffer_limit = "20000"
+[outputs.influxdb.tagpass]
+    db = ["nask-esa"]
+```
+Above example will run our python script every 10 seconds in telegraf exec influxdata protocol formtat with additional db tag with 10 seconds timeout for operation.
+After this Telegraf will output this produced metrics into InfluxDB output or any other telegraf suported output in this case VictoriaMetrics InfluxDB compatible listener with 20k metrics in memory buffer (nice if we have some network issues or external connectivity we will not lost any metric until this host restart).
+
+### Telegraf as HTTP writer to Telegraf listener (https://github.com/influxdata/telegraf/blob/master/plugins/inputs/influxdb_listener/README.md) 
+
+Example Telegraf configuration
+```
+[[inputs.influxdb_listener]]
+    service_address = ":8188"
+    read_timeout = "10s"
+    write_timeout = "10s"
+    max_body_size = 0
+[inputs.influxdb_listener.tags]
+    db = "nask-esa"
+
+[[outputs.influxdb]]
+    urls = ["http://192.168.1.11:8428"]
+    database = "nask-esa"
+    username = "nask-esa"
+    skip_database_creation = true
+    precision = "s"
+    flush_interval = "30s"
+    metric_buffer_limit = "20000"
+[outputs.influxdb.tagpass]
+    db = ["nask-esa"]
+```
+and to use this we can start our script as cron every minute
+```
+/usr/local/bin/python-nask-esa --mode telegraf-http --longitude=21.2213906 --latitude=52.2233683 --telegraf-url http://localhost:8188/write
+```
+This just send data over HTTP to local or external Telegraf listener which is also used for stats and later is same as with exec. Telegraf will send to any output we create and buffer metrics.
+
+Main metrics and additional stats from HTTP sending will we under this measurements defined in script code
+```
+  measurement_name = "nask_esa" # for metrics generation and sending
+  measurement_name_stats = "nask_esa_stats" # this measurement name will be used for stats generated in telegraf-http sending
+```
+#### Main metrics
+Unde above measurement `nask_esa` we will have specific tags and fields. They comes JSON details and measurements. details will be exposed as tags and measurements as firelds.
+
+Example:
+```
+nask_esa,city=WARSZAWA,latitude=52.2233683,longitude=21.2213906,name=SZKOŁA\ PODSTAWOWA\ NR\ 173\ IM.\ GÓRNIKÓW\ POLSKICH\ W\ WARSZAWIE,post_code=05-077,street=INNE\ TRAKT\ BRZESKI humidity_avg=90.1583,pm10_avg=51.0583,pm25_avg=32.8167,pressure_avg=999.1167,temperature_avg=3.4500 1673267291000000000
+```
+##### Fields
+* humidity_avg
+* pm10_avg
+* pm25_avg
+* pressure_avg
+* temperature_avg
+
+##### Tags
+* city
+* latitude
+* longitude
+* name
+* post_code
+* street
+
+#### Stats metrics format
+For stats with measurement name `nask_esa_stats` data we will produce fields and tags like bellow.
+
+Example:
+```
+nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=1,write_request_time=0.003112,esa_api_request_time=0.152607 1673267611000000000
+nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=2,write_request_time=0.002999,esa_api_request_time=0.152607 1673267611000000000
+nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=3,write_request_time=0.002946,esa_api_request_time=0.152607 1673267611000000000
+nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=4,write_request_time=0.003602,esa_api_request_time=0.152607 1673267611000000000
+nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=5,write_request_time=0.003157,esa_api_request_time=0.152607 1673267611000000000
+nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=6,write_request_time=0.00299,esa_api_request_time=0.152607 1673267611000000000
+nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=7,write_request_time=0.00305,esa_api_request_time=0.152607 1673267611000000000
+```
+
+##### Fields
+* esa_api_request_time - ESA API request time measured from script running
+* write_request_time - Write time over HTTP to Telegraf listener
+
+##### Tags
+* esa_api_status_code - HTTP status code from ESA API
+* write_status_code - HTTP status code from Telegraf write
+
