@@ -160,12 +160,19 @@ and to use this we can start our script as cron every minute
 ```
 This just send data over HTTP to local or external Telegraf listener which is also used for stats and later is same as with exec. Telegraf will send to any output we create and buffer metrics.
 
+#### Telegraf Exec vs HTTP
+
+Main difference between exec and http is that with HTTP we have additional stats that include esa api calls and telegraf writing over http which allow us to monitor whole process end-to-end if all is working properly or if we have any degradation.
+Exec allow only to see any issues in telegraf logs.
+With HTTP we can run with `--debug` the whole script we use in Cron and will produce all info about Telegraf writing codes with count and all stats metrics that are produced and written to Telegraf.
+
+### Metrics format
+
 Main metrics and additional stats from HTTP sending will we under this measurements defined in script code
 ```
   measurement_name = "nask_esa" # for metrics generation and sending
   measurement_name_stats = "nask_esa_stats" # this measurement name will be used for stats generated in telegraf-http sending
 ```
-### Metrics format
 
 #### Main metrics
 Unde above measurement `nask_esa` we will have specific tags and fields. They comes JSON details and measurements. details will be exposed as tags and measurements as firelds.
