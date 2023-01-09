@@ -13,6 +13,7 @@ def get_json(url):
     headers = {'Accept': 'application/json'}
     r = requests.get(url, headers=headers)
     json_data = r.json()
+    json_data["request_stats"] = add_api_stats(r, json_data)
     return json_data
 
 def time_epoch(timestamp):
@@ -31,6 +32,12 @@ def add_measurement(global_tags, tags, fields, timestamp):
 def dedup_dicts(items: List[dict]):
     dedu = [json.loads(x) for x in set(json.dumps(item, sort_keys=True) for item in items)]
     return dedu
+
+def add_api_stats(requests_data, struct_list):
+    dict_struct = {}
+    dict_struct["request_time"] = requests_data.elapsed.total_seconds()
+    dict_struct["status_code"] = requests_data.status_code
+    return dict_struct
 
 def get_struct(json_data, mode, global_tags, city, post_code, street, name, longitude, latitude):
     formated_list = []
@@ -66,7 +73,7 @@ def get_struct(json_data, mode, global_tags, city, post_code, street, name, long
     return_list = dedup_dicts(formated_list)
     return return_list # json with fields + tags
 
-def data_output(measurement_name, measurement_name_stats, formated_struct, url, mode, debug):
+def data_output(measurement_name, measurement_name_stats, formated_struct, url, mode, debug, json_data):
     if mode == "telegraf-exec" or mode == "telegraf-http":
        epo = int(time.time())
        curr_epoch = str(epo).split(".")[0][::-1].zfill(19)[::-1]
@@ -100,7 +107,10 @@ def data_output(measurement_name, measurement_name_stats, formated_struct, url, 
                    stats_status[r.status_code] = 1
                 # send internal stats about summary of each return coddes writing to telegraf influxdb listener - easy to monitor how many metrics sensing and which one ends with proper codes
                 for code, count in stats_status.items():
-                    data_stats = '{measurement},code={code} count={count} {epoch}'.format(measurement=measurement_name_stats, code=code, count=count, epoch=curr_epoch)
+                    http_write_request_time = r.elapsed.total_seconds()
+                    esa_api_request_time = json_data["request_stats"]["request_time"]
+                    esa_api_status_code = json_data["request_stats"]["status_code"]
+                    data_stats = '{measurement},code={code} count={count},write_request_time={http_write_request_time},esa_api_request_time={api_request_time},esa_api_status_code={api_status_code} {epoch}'.format(measurement=measurement_name_stats, code=code, api_request_time=esa_api_request_time, api_status_code=esa_api_status_code, http_write_request_time=http_write_request_time, count=count, epoch=curr_epoch)
                     # same url used as used in metrics sending
                     requests.post(url, data_stats.encode('utf-8'))
                 if debug:
@@ -161,7 +171,7 @@ def main():
 
   # send
   # output data based on mode
-  data_output(measurement_name, measurement_name_stats, formated_struct, telegraf_http_url, mode, debug)
+  data_output(measurement_name, measurement_name_stats, formated_struct, telegraf_http_url, mode, debug, json_data)
 
 if __name__ == '__main__':
     main()
