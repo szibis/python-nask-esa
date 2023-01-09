@@ -1,4 +1,4 @@
-# python-nask-esa
+# Python-Nask-ESA
 Script for getting data filtered or full from [NASK ESA](https://esa.nask.pl/) Air Quality project.
 
 ## Usage
@@ -15,27 +15,32 @@ With filtering we can generate metrics for example in whole city or postal-code 
 ### Help
 ```
 python3 nask_esa.py --help
-usage: nask_esa.py [-h] [-d] [-c CITY] [-p POST_CODE] [-s STREET] [-n SCHOOL_NAME] [-m {human,raw,telegraf-exec,telegraf-http}] [-o LONGITUDE] [-a LATITUDE] [-t TELEGRAF_HTTP_URL]
+usage: nask-esa [-h] [-d] [-c CITY] [-p POST_CODE] [-s STREET]
+                [-n SCHOOL_NAME]
+                [-m {table,json,telegraf-exec,telegraf-http}]
+                [-o LONGITUDE] [-a LATITUDE] [-t TELEGRAF_HTTP_URL]
 
-options:
+optional arguments:
   -h, --help            show this help message and exit
   -d, --debug
   -c CITY, --city CITY
   -p POST_CODE, --post-code POST_CODE
   -s STREET, --street STREET
   -n SCHOOL_NAME, --school-name SCHOOL_NAME
-  -m {human,raw,telegraf-exec,telegraf-http}, --mode {human,raw,telegraf-exec,telegraf-http}
+  -m {table,json,telegraf-exec,telegraf-http}, --mode {table,json,telegraf-exec,telegraf-http}
   -o LONGITUDE, --longitude LONGITUDE
   -a LATITUDE, --latitude LATITUDE
   -t TELEGRAF_HTTP_URL, --telegraf-url TELEGRAF_HTTP_URL
   ```
+   default for `-t TELEGRAF_HTTP_URL` is `http://localhost:8186/write`
+   default for `-m {table,json,telegraf-exec,telegraf-http}, --mode {table,json,telegraf-exec,telegraf-http}` is `json`
   
  ### Modes
  Script can be used in multiple modes to output data in:
- * JSON with proper indent for better reading
- * Human readable table formating
- * [Telegraf](https://github.com/influxdata/telegraf) HTTP listener sending in influx format 
- * [Telegraf](https://github.com/influxdata/telegraf) as Exec output in influx format
+ * json - JSON with proper indent for better reading
+ * table - Human readable table formating
+ * telegraf-http - [Telegraf](https://github.com/influxdata/telegraf) HTTP listener sending in influx format 
+ * telegraf-exec - [Telegraf](https://github.com/influxdata/telegraf) as Exec output in influx format
  
  ### Filtering
  All available attributes based on API can be used for filtering. Some like school name are very difficult to use as there is Full School name there, but there are more usable options like:
@@ -155,12 +160,19 @@ and to use this we can start our script as cron every minute
 ```
 This just send data over HTTP to local or external Telegraf listener which is also used for stats and later is same as with exec. Telegraf will send to any output we create and buffer metrics.
 
+#### Telegraf Exec vs HTTP
+
+Main difference between exec and http is that with HTTP we have additional stats that include esa api calls and telegraf writing over http which allow us to monitor whole process end-to-end if all is working properly or if we have any degradation.
+Exec allow only to see any issues in telegraf logs.
+With HTTP we can run with `--debug` the whole script we use in Cron and will produce all info about Telegraf writing codes with count and all stats metrics that are produced and written to Telegraf.
+
+### Metrics format
+
 Main metrics and additional stats from HTTP sending will we under this measurements defined in script code
 ```
   measurement_name = "nask_esa" # for metrics generation and sending
   measurement_name_stats = "nask_esa_stats" # this measurement name will be used for stats generated in telegraf-http sending
 ```
-### Metrics format
 
 #### Main metrics
 Unde above measurement `nask_esa` we will have specific tags and fields. They comes JSON details and measurements. details will be exposed as tags and measurements as firelds.
@@ -175,7 +187,6 @@ nask_esa,city=WARSZAWA,latitude=52.2233683,longitude=21.2213906,name=SZKOŁA\ PO
 * pm25_avg
 * pressure_avg
 * temperature_avg
-
 ##### Tags
 * city
 * latitude
@@ -183,25 +194,22 @@ nask_esa,city=WARSZAWA,latitude=52.2233683,longitude=21.2213906,name=SZKOŁA\ PO
 * name
 * post_code
 * street
-
 #### Stats metrics format
 For stats with measurement name `nask_esa_stats` data we will produce fields and tags like bellow.
 
 Example:
 ```
-nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=1,write_request_time=0.003112,esa_api_request_time=0.152607 1673267611000000000
-nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=2,write_request_time=0.002999,esa_api_request_time=0.152607 1673267611000000000
-nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=3,write_request_time=0.002946,esa_api_request_time=0.152607 1673267611000000000
-nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=4,write_request_time=0.003602,esa_api_request_time=0.152607 1673267611000000000
-nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=5,write_request_time=0.003157,esa_api_request_time=0.152607 1673267611000000000
-nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=6,write_request_time=0.00299,esa_api_request_time=0.152607 1673267611000000000
-nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=7,write_request_time=0.00305,esa_api_request_time=0.152607 1673267611000000000
+nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=1,write_request_time=0.00306,esa_api_request_time=0.138642 1673298668000000000
+nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=1,write_request_time=0.003004,esa_api_request_time=0.138642 1673298668000000000
+nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=1,write_request_time=0.003053,esa_api_request_time=0.138642 1673298668000000000
+nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=1,write_request_time=0.004911,esa_api_request_time=0.138642 1673298668000000000
+nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=1,write_request_time=0.004465,esa_api_request_time=0.138642 1673298668000000000
+nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=1,write_request_time=0.004983,esa_api_request_time=0.138642 1673298668000000000
+nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=1,write_request_time=0.003016,esa_api_request_time=0.138642 1673298668000000000
 ```
-
 ##### Fields
 * esa_api_request_time - ESA API request time measured from script running
 * write_request_time - Write time over HTTP to Telegraf listener
-
 ##### Tags
 * esa_api_status_code - HTTP status code from ESA API
 * write_status_code - HTTP status code from Telegraf write
