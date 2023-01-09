@@ -110,7 +110,7 @@ def data_output(measurement_name, measurement_name_stats, formated_struct, url, 
                     http_write_request_time = r.elapsed.total_seconds()
                     esa_api_request_time = json_data["request_stats"]["request_time"]
                     esa_api_status_code = json_data["request_stats"]["status_code"]
-                    data_stats = '{measurement},write_status_code={code},esa_api_status_code={api_status_code} count={count},write_request_time={http_write_request_time},esa_api_request_time={api_request_time} {epoch}'.format(measurement=measurement_name_stats, code=code, api_request_time=esa_api_request_time, api_status_code=esa_api_status_code, http_write_request_time=http_write_request_time, count=count, epoch=curr_epoch)
+                    data_stats = '{measurement},write_status_code={code},esa_api_status_code={api_status_code} count=1,write_request_time={http_write_request_time},esa_api_request_time={api_request_time} {epoch}'.format(measurement=measurement_name_stats, code=code, api_request_time=esa_api_request_time, api_status_code=esa_api_status_code, http_write_request_time=http_write_request_time, count=count, epoch=curr_epoch)
                     # same url used as used in metrics sending
                     requests.post(url, data_stats.encode('utf-8'))
                     if debug:
