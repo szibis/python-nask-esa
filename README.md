@@ -98,7 +98,9 @@ temperature_avg                                                NaN      3.450000
 
 ## Observability
 
-### Telegraf as Exec (https://github.com/influxdata/telegraf/tree/master/plugins/inputs/exec)
+### Telegraf
+
+#### Telegraf as Exec (https://github.com/influxdata/telegraf/tree/master/plugins/inputs/exec)
 
 Example Telegraf configuration
 ```
@@ -124,7 +126,7 @@ Example Telegraf configuration
 Above example will run our python script every 10 seconds in telegraf exec influxdata protocol formtat with additional db tag with 10 seconds timeout for operation.
 After this Telegraf will output this produced metrics into InfluxDB output or any other telegraf suported output in this case VictoriaMetrics InfluxDB compatible listener with 20k metrics in memory buffer (nice if we have some network issues or external connectivity we will not lost any metric until this host restart).
 
-### Telegraf as HTTP writer to Telegraf listener (https://github.com/influxdata/telegraf/blob/master/plugins/inputs/influxdb_listener/README.md) 
+####  Telegraf as HTTP writer to Telegraf listener (https://github.com/influxdata/telegraf/blob/master/plugins/inputs/influxdb_listener/README.md) 
 
 Example Telegraf configuration
 ```
@@ -158,6 +160,8 @@ Main metrics and additional stats from HTTP sending will we under this measureme
   measurement_name = "nask_esa" # for metrics generation and sending
   measurement_name_stats = "nask_esa_stats" # this measurement name will be used for stats generated in telegraf-http sending
 ```
+### Metrics format
+
 #### Main metrics
 Unde above measurement `nask_esa` we will have specific tags and fields. They comes JSON details and measurements. details will be exposed as tags and measurements as firelds.
 
