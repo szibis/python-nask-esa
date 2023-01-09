@@ -15,27 +15,32 @@ With filtering we can generate metrics for example in whole city or postal-code 
 ### Help
 ```
 python3 nask_esa.py --help
-usage: nask_esa.py [-h] [-d] [-c CITY] [-p POST_CODE] [-s STREET] [-n SCHOOL_NAME] [-m {human,raw,telegraf-exec,telegraf-http}] [-o LONGITUDE] [-a LATITUDE] [-t TELEGRAF_HTTP_URL]
+usage: nask-esa [-h] [-d] [-c CITY] [-p POST_CODE] [-s STREET]
+                [-n SCHOOL_NAME]
+                [-m {table,json,telegraf-exec,telegraf-http}]
+                [-o LONGITUDE] [-a LATITUDE] [-t TELEGRAF_HTTP_URL]
 
-options:
+optional arguments:
   -h, --help            show this help message and exit
   -d, --debug
   -c CITY, --city CITY
   -p POST_CODE, --post-code POST_CODE
   -s STREET, --street STREET
   -n SCHOOL_NAME, --school-name SCHOOL_NAME
-  -m {human,raw,telegraf-exec,telegraf-http}, --mode {human,raw,telegraf-exec,telegraf-http}
+  -m {table,json,telegraf-exec,telegraf-http}, --mode {table,json,telegraf-exec,telegraf-http}
   -o LONGITUDE, --longitude LONGITUDE
   -a LATITUDE, --latitude LATITUDE
   -t TELEGRAF_HTTP_URL, --telegraf-url TELEGRAF_HTTP_URL
   ```
+   default for `-t TELEGRAF_HTTP_URL` is `http://localhost:8186/write`
+   default for `-m {table,json,telegraf-exec,telegraf-http}, --mode {table,json,telegraf-exec,telegraf-http}` is `json`
   
  ### Modes
  Script can be used in multiple modes to output data in:
- * JSON with proper indent for better reading
- * Human readable table formating
- * [Telegraf](https://github.com/influxdata/telegraf) HTTP listener sending in influx format 
- * [Telegraf](https://github.com/influxdata/telegraf) as Exec output in influx format
+ * json - JSON with proper indent for better reading
+ * table - Human readable table formating
+ * telegraf-http - [Telegraf](https://github.com/influxdata/telegraf) HTTP listener sending in influx format 
+ * telegraf-exec - [Telegraf](https://github.com/influxdata/telegraf) as Exec output in influx format
  
  ### Filtering
  All available attributes based on API can be used for filtering. Some like school name are very difficult to use as there is Full School name there, but there are more usable options like:
