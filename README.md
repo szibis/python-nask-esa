@@ -199,13 +199,13 @@ For stats with measurement name `nask_esa_stats` data we will produce fields and
 
 Example:
 ```
-nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=1,write_request_time=0.003112,esa_api_request_time=0.152607 1673267611000000000
-nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=2,write_request_time=0.002999,esa_api_request_time=0.152607 1673267611000000000
-nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=3,write_request_time=0.002946,esa_api_request_time=0.152607 1673267611000000000
-nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=4,write_request_time=0.003602,esa_api_request_time=0.152607 1673267611000000000
-nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=5,write_request_time=0.003157,esa_api_request_time=0.152607 1673267611000000000
-nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=6,write_request_time=0.00299,esa_api_request_time=0.152607 1673267611000000000
-nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=7,write_request_time=0.00305,esa_api_request_time=0.152607 1673267611000000000
+nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=1,write_request_time=0.00306,esa_api_request_time=0.138642 1673298668000000000
+nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=1,write_request_time=0.003004,esa_api_request_time=0.138642 1673298668000000000
+nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=1,write_request_time=0.003053,esa_api_request_time=0.138642 1673298668000000000
+nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=1,write_request_time=0.004911,esa_api_request_time=0.138642 1673298668000000000
+nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=1,write_request_time=0.004465,esa_api_request_time=0.138642 1673298668000000000
+nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=1,write_request_time=0.004983,esa_api_request_time=0.138642 1673298668000000000
+nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=1,write_request_time=0.003016,esa_api_request_time=0.138642 1673298668000000000
 ```
 ##### Fields
 * esa_api_request_time - ESA API request time measured from script running
