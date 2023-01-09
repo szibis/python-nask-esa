@@ -1,4 +1,4 @@
-# Python-nask-esa
+# Python-Nask-ESA
 Script for getting data filtered or full from [NASK ESA](https://esa.nask.pl/) Air Quality project.
 
 ## Usage
