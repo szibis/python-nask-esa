@@ -180,7 +180,6 @@ nask_esa,city=WARSZAWA,latitude=52.2233683,longitude=21.2213906,name=SZKOŁA\ PO
 * pm25_avg
 * pressure_avg
 * temperature_avg
-
 ##### Tags
 * city
 * latitude
@@ -188,7 +187,6 @@ nask_esa,city=WARSZAWA,latitude=52.2233683,longitude=21.2213906,name=SZKOŁA\ PO
 * name
 * post_code
 * street
-
 #### Stats metrics format
 For stats with measurement name `nask_esa_stats` data we will produce fields and tags like bellow.
 
@@ -202,11 +200,9 @@ nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=5,write_reque
 nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=6,write_request_time=0.00299,esa_api_request_time=0.152607 1673267611000000000
 nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=7,write_request_time=0.00305,esa_api_request_time=0.152607 1673267611000000000
 ```
-
 ##### Fields
 * esa_api_request_time - ESA API request time measured from script running
 * write_request_time - Write time over HTTP to Telegraf listener
-
 ##### Tags
 * esa_api_status_code - HTTP status code from ESA API
 * write_status_code - HTTP status code from Telegraf write
