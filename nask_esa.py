@@ -39,7 +39,6 @@ def add_api_stats(requests_data, struct_list):
     dict_struct = {}
     dict_struct["request_time"] = requests_data.elapsed.total_seconds()
     dict_struct["status_code"] = requests_data.status_code
-    print(dict_struct)
     return dict_struct
 
 def get_struct(json_data, mode, global_tags, city, post_code, street, name, longitude, latitude):
