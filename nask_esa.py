@@ -7,11 +7,13 @@ import re
 import time
 import pandas as pd
 from typing import List
+from requests_cache import CachedSession
 
 def get_json(url):
     # requests
     headers = {'Accept': 'application/json'}
-    r = requests.get(url, headers=headers)
+    session = CachedSession('esa_cache', expire_after=1800, stale_if_error=True, allowable_codes=[200])
+    r = session.get(url, headers=headers)
     json_data = r.json()
     json_data["request_stats"] = add_api_stats(r, json_data)
     return json_data
@@ -37,6 +39,7 @@ def add_api_stats(requests_data, struct_list):
     dict_struct = {}
     dict_struct["request_time"] = requests_data.elapsed.total_seconds()
     dict_struct["status_code"] = requests_data.status_code
+    print(dict_struct)
     return dict_struct
 
 def get_struct(json_data, mode, global_tags, city, post_code, street, name, longitude, latitude):
