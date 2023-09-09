@@ -213,4 +213,13 @@ nask_esa_stats,write_status_code=204,esa_api_status_code=200 count=1,write_reque
 ##### Tags
 * esa_api_status_code - HTTP status code from ESA API
 * write_status_code - HTTP status code from Telegraf write
+  
+### Grafana
+Based on Telegraf data we can graph the data
+<img width="1768" alt="image" src="https://github.com/szibis/python-nask-esa/assets/329831/e5116333-a4fd-42bd-aa6d-0e0adf76cd5d">
+<img width="1769" alt="image" src="https://github.com/szibis/python-nask-esa/assets/329831/2b15ce56-ebdb-4419-adac-14e07fcef115">
+<img width="882" alt="image" src="https://github.com/szibis/python-nask-esa/assets/329831/4d56e70a-2e14-4e0c-a6be-cdbaaceaa63b">
+We can also see internal stats for Telegraf processing and NASK API times for requests
+<img width="874" alt="image" src="https://github.com/szibis/python-nask-esa/assets/329831/f3ecf7b5-9690-4258-acc9-c10e73d8625e">
+<img width="879" alt="image" src="https://github.com/szibis/python-nask-esa/assets/329831/d9c7a2e8-0fb8-490f-ab07-c49cf721f9f2">
 
