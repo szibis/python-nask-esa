@@ -96,15 +96,6 @@ def get_struct(json_data, mode, global_tags, city, post_code, street, name, long
                  formated_list.append(add_measurement(global_tags, item["school"], item["data"], item["timestamp"]))
         if city is None and post_code is None and street is None and name is None and longitude is None and latitude is None:
               formated_list.append(add_measurement(global_tags, item["school"], item["data"], item["timestamp"]))
-#        elev = elevation_get(item["school"]["latitude"], item["school"]["longitude"], 0)
-#        # add elevation to measurements
-#        item['data']['elevation'] = elev
-#        pressure = item["data"]['pressure_avg']
-#        temp = item["data"]['temperature_avg']
-#        pressure_sea = pressure_sea_level(elev, pressure, temp)
-#        # add pressure with sea elevation and temp compensated
-#        item['data']['pressure_sea_avg'] = pressure_sea
-#        formated_list.append(add_measurement(global_tags, item["school"], item["data"], item["timestamp"]))
     # uniq items
     return_list = dedup_dicts(formated_list)
     return return_list # json with fields + tags
