@@ -14,13 +14,10 @@ Two modes available:
 With filtering we can generate metrics for example in whole city or postal-code in our neigborhood without knowing specific school (station id) whoch is more effective by grabbing all data in one API call.
 ### Help
 ```
-python3 nask_esa.py --help
-usage: nask-esa [-h] [-d] [-c CITY] [-p POST_CODE] [-s STREET]
-                [-n SCHOOL_NAME]
-                [-m {table,json,telegraf-exec,telegraf-http}]
-                [-o LONGITUDE] [-a LATITUDE] [-t TELEGRAF_HTTP_URL]
+python3 nask_esa.py -h
+usage: nask_esa.py [-h] [-d] [-c CITY] [-p POST_CODE] [-s STREET] [-n SCHOOL_NAME] [-m {table,json,telegraf-exec,telegraf-http}] [-o LONGITUDE] [-a LATITUDE] [-t TELEGRAF_HTTP_URL] [-l TTL]
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -d, --debug
   -c CITY, --city CITY
@@ -31,7 +28,8 @@ optional arguments:
   -o LONGITUDE, --longitude LONGITUDE
   -a LATITUDE, --latitude LATITUDE
   -t TELEGRAF_HTTP_URL, --telegraf-url TELEGRAF_HTTP_URL
-  ```
+  -l TTL, --ttl TTL     Cache TTL for HTTP GET in elevation data and ESA API calls
+```
    default for `-t TELEGRAF_HTTP_URL` is `http://localhost:8186/write`
    default for `-m {table,json,telegraf-exec,telegraf-http}, --mode {table,json,telegraf-exec,telegraf-http}` is `json`
   
@@ -73,13 +71,15 @@ optional arguments:
             "street": "INNE TRAKT BRZESKI"
         },
         "measurements": {
-            "humidity_avg": 90.15833333333335,
-            "pm10_avg": 51.05833333333334,
-            "pm25_avg": 32.81666666666667,
-            "pressure_avg": 999.1166666666667,
-            "temperature_avg": 3.4499999999999997
+            "elevation": 104.8543701171875,
+            "humidity_avg": 59.041666666666664,
+            "pm10_avg": 19.816666666666666,
+            "pm25_avg": 15.241666666666667,
+            "pressure_avg": 1009.6666666666666,
+            "pressure_sea_avg": 1021.8773859644494,
+            "temperature_avg": 24.558333333333334
         },
-        "timestamp": "2023-01-09 11:23:43"
+        "timestamp": "2023-09-10 11:08:01"
     }
 ]
  ```
@@ -87,18 +87,20 @@ optional arguments:
  
  ```
 python3 nask_esa.py -m table --longitude=21.2213906 --latitude=52.2233683
-                                                           details  measurements            timestamp
-city                                                      WARSZAWA           NaN  2023-01-09 11:23:43
-latitude                                                52.2233683           NaN  2023-01-09 11:23:43
-longitude                                               21.2213906           NaN  2023-01-09 11:23:43
-name             SZKOŁA PODSTAWOWA NR 173 IM. GÓRNIKÓW POLSKICH...           NaN  2023-01-09 11:23:43
-post_code                                                   05-077           NaN  2023-01-09 11:23:43
-street                                          INNE TRAKT BRZESKI           NaN  2023-01-09 11:23:43
-humidity_avg                                                   NaN     90.158333  2023-01-09 11:23:43
-pm10_avg                                                       NaN     51.058333  2023-01-09 11:23:43
-pm25_avg                                                       NaN     32.816667  2023-01-09 11:23:43
-pressure_avg                                                   NaN    999.116667  2023-01-09 11:23:43
-temperature_avg                                                NaN      3.450000  2023-01-09 11:23:43
+                                                            details  measurements            timestamp
+city                                                       WARSZAWA           NaN  2023-09-10 11:08:01
+latitude                                                 52.2233683           NaN  2023-09-10 11:08:01
+longitude                                                21.2213906           NaN  2023-09-10 11:08:01
+name              SZKOŁA PODSTAWOWA NR 173 IM. GÓRNIKÓW POLSKICH...           NaN  2023-09-10 11:08:01
+post_code                                                    05-077           NaN  2023-09-10 11:08:01
+street                                           INNE TRAKT BRZESKI           NaN  2023-09-10 11:08:01
+elevation                                                       NaN    104.854370  2023-09-10 11:08:01
+humidity_avg                                                    NaN     59.041667  2023-09-10 11:08:01
+pm10_avg                                                        NaN     19.816667  2023-09-10 11:08:01
+pm25_avg                                                        NaN     15.241667  2023-09-10 11:08:01
+pressure_avg                                                    NaN   1009.666667  2023-09-10 11:08:01
+pressure_sea_avg                                                NaN   1021.877386  2023-09-10 11:08:01
+temperature_avg                                                 NaN     24.558333  2023-09-10 11:08:01
  ```
 
 ## Observability
@@ -187,6 +189,8 @@ nask_esa,city=WARSZAWA,latitude=52.2233683,longitude=21.2213906,name=SZKOŁA\ PO
 * pm25_avg
 * pressure_avg
 * temperature_avg
+* pressure_sea_avg
+* elevation
 ##### Tags
 * city
 * latitude

@@ -9,14 +9,31 @@ import pandas as pd
 from typing import List
 from requests_cache import CachedSession
 
-def get_json(url):
+def get_json(url, ttl):
     # requests
     headers = {'Accept': 'application/json'}
-    session = CachedSession('esa_cache', expire_after=1800, stale_if_error=True, allowable_codes=[200])
+    session = CachedSession('esa_cache', expire_after=ttl, stale_if_error=True, allowable_codes=[200])
     r = session.get(url, headers=headers)
     json_data = r.json()
     json_data["request_stats"] = add_api_stats(r, json_data)
     return json_data
+
+def build_elevation_url(lat, lng):
+    #https://api.opentopodata.org/v1/eudem25m?locations=<lat>,<lng>
+    url = "https://api.opentopodata.org/v1/eudem25m?locations={},{}".format(lat, lng)
+    return url
+
+def elevation_get(lat, lng, ttl):
+    url = build_elevation_url(lat, lng)
+    data = get_json(url, ttl)
+    return data["results"][0]["elevation"]
+
+def pressure_sea_level(elevation, pressure, temp):
+    if pressure is not None and temp is not None:
+       pressure_sea = pressure / pow(1 - (0.0065 * elevation) / (temp + 0.0065 * elevation + 273.15), 5.257)
+    else:
+       pressure_sea = 0
+    return pressure_sea
 
 def time_epoch(timestamp):
     pattern = '%Y-%m-%d %H:%M:%S'
@@ -24,6 +41,14 @@ def time_epoch(timestamp):
     return epoch
 
 def add_measurement(global_tags, tags, fields, timestamp):
+    elev = elevation_get(tags["latitude"], tags["longitude"], 0)
+    # add elevation to measurements
+    fields['elevation'] = elev
+    pressure = fields['pressure_avg']
+    temp = fields['temperature_avg']
+    pressure_sea = pressure_sea_level(elev, pressure, temp)
+    # add pressure with sea elevation and temp compensated
+    fields['pressure_sea_avg'] = pressure_sea
     # TODO add global tags to item tags from school
     formated_struct = {}
     formated_struct["details"] = tags
@@ -41,7 +66,7 @@ def add_api_stats(requests_data, struct_list):
     dict_struct["status_code"] = requests_data.status_code
     return dict_struct
 
-def get_struct(json_data, mode, global_tags, city, post_code, street, name, longitude, latitude):
+def get_struct(json_data, mode, global_tags, city, post_code, street, name, longitude, latitude, ttl):
     formated_list = []
     for item in json_data["smog_data"]:
         # check if item is not None and exact match normalized to lowered
@@ -71,6 +96,15 @@ def get_struct(json_data, mode, global_tags, city, post_code, street, name, long
                  formated_list.append(add_measurement(global_tags, item["school"], item["data"], item["timestamp"]))
         if city is None and post_code is None and street is None and name is None and longitude is None and latitude is None:
               formated_list.append(add_measurement(global_tags, item["school"], item["data"], item["timestamp"]))
+#        elev = elevation_get(item["school"]["latitude"], item["school"]["longitude"], 0)
+#        # add elevation to measurements
+#        item['data']['elevation'] = elev
+#        pressure = item["data"]['pressure_avg']
+#        temp = item["data"]['temperature_avg']
+#        pressure_sea = pressure_sea_level(elev, pressure, temp)
+#        # add pressure with sea elevation and temp compensated
+#        item['data']['pressure_sea_avg'] = pressure_sea
+#        formated_list.append(add_measurement(global_tags, item["school"], item["data"], item["timestamp"]))
     # uniq items
     return_list = dedup_dicts(formated_list)
     return return_list # json with fields + tags
@@ -141,6 +175,7 @@ def main():
   parser.add_argument('-o', '--longitude', action="store", default=None, dest='longitude')
   parser.add_argument('-a', '--latitude', action="store", default=None, dest='latitude')
   parser.add_argument('-t', '--telegraf-url', action="store", default="http://localhost:8186/write", dest='telegraf_http_url')
+  parser.add_argument('-l', '--ttl', action="store", default=1800, dest='ttl', help="Cache TTL for HTTP GET data ESA API in calls")
   args = parser.parse_args()
 
   debug=args.debug
@@ -164,14 +199,15 @@ def main():
   school_name=args.school_name
   longitude=args.longitude
   latitude=args.latitude
+  ttl=args.ttl
 
   # source
   # get JSON data via API call
-  json_data = get_json(esa_api_url)
+  json_data = get_json(esa_api_url, ttl)
 
   # transform
   # prepare to formated structure
-  formated_struct = get_struct(json_data, mode, global_tags, city, post_code, street, school_name, longitude, latitude)
+  formated_struct = get_struct(json_data, mode, global_tags, city, post_code, street, school_name, longitude, latitude, ttl)
 
   # send
   # output data based on mode
